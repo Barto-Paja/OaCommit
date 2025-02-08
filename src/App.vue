@@ -8,7 +8,7 @@ interface Commit {
   message: string;
   author: string;
   date: number;
-  branch: string;
+  branches: string[];
   parents: string[];
 }
 
@@ -69,7 +69,12 @@ function format_date(timestamp: number) : string {
         </div>
         <div class="cell-date-label">
           <div>
-            {{ format_date(commit.date) }}
+            {{ format_date(commit.date) }} {{ commit.message }}
+          </div>
+        </div>
+        <div class="cell-branches-label">
+          <div v-for="(branch, index) in commit.branches" :class="'branch-label-'+index%3">
+            {{branch}}
           </div>
         </div>
       </div>
@@ -117,28 +122,35 @@ function format_date(timestamp: number) : string {
   padding: 15px;
 }
 .cell-date-label {
-  flex: 7; /* Każda komórka zajmie równą przestrzeń */
+  flex: 4; /* Każda komórka zajmie równą przestrzeń */
   min-height: 24px; /* Wysokość minimalna */
   /*border: 1px solid #ccc; */
   padding: 15px;
 }
-
-
+.cell-branches-label {
+  flex: 7; /* Każda komórka zajmie równą przestrzeń */
+  min-height: 24px; /* Wysokość minimalna */
+  /*border: 1px solid #ccc; */
+  padding: 15px;
+  gap: 5px;
+  display: flex;
+}
 
 :root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 400;
+  --bg-color: #E6D6C5;         /* Ciepły beż (tło główne, drewno) */
+  --panel-color: #D1BFA5;       /* Jasny brąz (panele boczne, karty commitów) */
+  --highlight-color: #B89B7E;   /* Ciemniejszy brąz (podświetlenia, aktywne elementy) */
+  --text-color: #2E2E2E;        /* Grafitowy tekst (kontrast i czytelność) */
+  --accent-green: #4C8C4A;      /* Zieleń (gałęzie, statusy, akcenty) */
+  --commit-bg: #E0C9A6;         /* Jasny brązowy dla commitów */
+  --commit-border: #8C6B48;     /* Ciemniejszy kontur commitów */
+  --hover-color: #A3835F;       /* Subtelne podświetlenie na hover */
+}
 
-  color: #0f0f0f;
-  background-color: #f6f6f6;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: 'Inter', sans-serif; /* Nowoczesny, czytelny font */
 }
 
 .table {
@@ -258,6 +270,15 @@ th:not(:last-child)::after {
   grid-area: commit-details;
 }
 
+.commit-details {
+  background: var(--commit-bg);
+  border: 1px solid #4CAF50;
+  border-radius: 12px;
+  padding: 10px;
+  margin: 5px 0;
+  transition: background 0.3s ease-in-out;
+}
+
 li {
   list-style:none;
   padding: 2px 0 2px 0;
@@ -266,6 +287,13 @@ li {
 .content{
   max-height: 90vh;
   overflow-y: auto;
+
+  background: var(--commit-bg);
+  border: 1px solid var(--commit-border);
+  border-radius: 12px;
+  padding: 10px;
+  margin: 5px 0;
+  transition: background 0.3s ease-in-out;
 }
 
 .commit-hash {
@@ -280,6 +308,45 @@ li {
   font-family: monospace;
 }
 
+.branch-label-0 {
+  color: white;
+  border-radius: 5px;
+  background: rgba(16, 93, 194, 0.76);
+  display:inline-block;
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: monospace;
+  padding: 5px 5px;
+}
+
+.branch-label-1 {
+  color: white;
+  border-radius: 5px;
+  background: rgba(194, 90, 16, 0.76);
+  display:inline-block;
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: monospace;
+  padding: 5px 5px;
+}
+
+.branch-label-2 {
+  color: white;
+  border-radius: 5px;
+  background: rgb(76, 175, 80);
+  display:inline-block;
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: monospace;
+  padding: 5px 5px;
+}
+
 .commit-hash-label {
   --b: 0.1em;   /* the thickness of the line */
   color: white;
@@ -292,6 +359,7 @@ li {
   align-items: center;
   justify-content: center;
   font-family: monospace;
+
 }
 
 .commit-date-label {
