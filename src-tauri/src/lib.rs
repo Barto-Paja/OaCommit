@@ -19,6 +19,38 @@ struct Commit {
     pub parents: Vec<String>
 }
 
+#[tauri::command]
+fn get_remote_branches(repo_path: String) -> Vec<(String,String)> {
+    let repo = Repository::open(&repo_path).map_err(|e| e.to_string()).unwrap();
+    let mut mapped_branches : Vec<(String,String)> = Vec::new();
+
+    if let Ok(branches) = repo.branches(Some(BranchType::Remote)) {
+        for branch in branches.flatten() {
+            if let (Ok(Some(branch_name)), Some(target)) = (branch.0.name(), branch.0.get().target()) {
+                mapped_branches.push((target.to_string(), branch_name.to_string()));
+            }
+        }
+    }
+
+    mapped_branches
+}
+
+#[tauri::command]
+fn get_local_branches(repo_path: String) -> Vec<(String,String)> {
+    let repo = Repository::open(&repo_path).map_err(|e| e.to_string()).unwrap();
+    let mut mapped_branches : Vec<(String,String)> = Vec::new();
+
+    if let Ok(branches) = repo.branches(Some(BranchType::Local)) {
+        for branch in branches.flatten() {
+            if let (Ok(Some(branch_name)), Some(target)) = (branch.0.name(), branch.0.get().target()) {
+                mapped_branches.push((target.to_string(), branch_name.to_string()));
+            }
+        }
+    }
+
+    mapped_branches
+}
+
 fn get_branches(repo: &Repository) -> Vec<(String,String)> {
     let mut mapped_branches : Vec<(String,String)> = Vec::new();
 
@@ -85,7 +117,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
-        .invoke_handler(tauri::generate_handler![get_git_log])
+        .invoke_handler(tauri::generate_handler![get_git_log, get_remote_branches, get_local_branches])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

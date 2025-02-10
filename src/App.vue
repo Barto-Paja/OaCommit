@@ -15,6 +15,8 @@ interface Commit {
 const selectedCommit = ref<Commit | null>(null);
 const name = ref("");
 const commits = ref<Commit[]>([]);
+const local_branches = ref([]);
+const remote_branches = ref([]);
 
 async function get_git_log() {
   try {
@@ -28,6 +30,10 @@ async function get_git_log() {
       name.value = r;
       commits.value = await invoke("get_git_log", { repoPath: r });
       console.log(name);
+
+      local_branches.value = await invoke("get_local_branches", {repoPath: r});
+      remote_branches.value = await invoke("get_remote_branches", {repoPath: r});
+
     }
 
   } catch (error) {
@@ -51,15 +57,26 @@ function format_date(timestamp: number) : string {
           </form>
         </div>
     </div>
+    <div class="branches">
+      <div class="branches-label-header"><img class="branches-label-icon" src="/src/assets/tree.gif" alt="Animacja" /><div>Local Branches</div></div>
+      <div class="branches-label-header" v-for="branch in local_branches">
+        <img class="branches-label-icon" src="/src/assets/leaf_12586785.gif" alt="Animacja" /><div>{{ branch[1] }}</div>
+      </div>
+      <div class="branches-label-header"><img class="branches-label-icon" src="/src/assets/tree_12586813.gif" alt="Animacja" /><div>Remote Branches</div></div>
+      <div class="branches-label-header" v-for="branch in remote_branches">
+        <img class="branches-label-icon" src="/src/assets/leaf_12586785.gif" alt="Animacja" /><div>{{ branch[1] }}</div>
+      </div>
+    </div>
     <div class="content">
       <div class="row" v-for="commit in commits">
         <div class="cell-dot" >
           <div
               @mouseover="selectedCommit = commit"
           >
-            <div class="hover-3">
-              <div :class="'dot'"></div>
-            </div>
+            <img class="cell-dot" src="/src/assets/share.png" alt="Animacja" />
+<!--            <div class="hover-3">-->
+<!--              <div :class="'dot'"></div>-->
+<!--            </div>-->
           </div>
         </div>
         <div class="cell-hash-label">
@@ -102,6 +119,28 @@ function format_date(timestamp: number) : string {
 </style>
 <style>
 
+/* Cały pasek przewijania */
+::-webkit-scrollbar {
+  width: 10px; /* Szerokość paska */
+}
+
+/* Kolor tła paska */
+::-webkit-scrollbar-track {
+  background: #5a2a27; /* Ciemnoczerwony, jak jesienne liście */
+  border-radius: 5px;
+}
+
+/* Suwak (uchwyt) */
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #c94c4c, #ffb74d); /* Gradient czerwono-pomarańczowy */
+  border-radius: 5px;
+}
+
+/* Hover efekt na suwak */
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ff6347, #ffa726); /* Jaśniejszy efekt */
+}
+
 .row {
   display: flex;
   gap: 10px; /* Odstęp między elementami */
@@ -110,28 +149,27 @@ function format_date(timestamp: number) : string {
 
 .cell-dot {
   flex: 1; /* Każda komórka zajmie równą przestrzeń */
-  min-height: 24px; /* Wysokość minimalna */
+  min-height: 48px; /* Wysokość minimalna */
   /*border: 1px solid #ccc; */
-  max-width: 16px;
-  padding: 10px;
+  max-width: 48px;
 }
 .cell-hash-label {
   flex: 1; /* Każda komórka zajmie równą przestrzeń */
   min-height: 24px; /* Wysokość minimalna */
   /*border: 1px solid #ccc; */
-  padding: 15px;
+  padding: 10px;
 }
 .cell-date-label {
   flex: 4; /* Każda komórka zajmie równą przestrzeń */
   min-height: 24px; /* Wysokość minimalna */
   /*border: 1px solid #ccc; */
-  padding: 15px;
+  padding: 10px;
 }
 .cell-branches-label {
   flex: 7; /* Każda komórka zajmie równą przestrzeń */
   min-height: 24px; /* Wysokość minimalna */
   /*border: 1px solid #ccc; */
-  padding: 15px;
+  padding: 10px;
   gap: 5px;
   display: flex;
 }
@@ -174,9 +212,9 @@ th {
 .dot {
   width: 24px;
   height: 24px;
-  border: 4px solid #4CAF50; /* Obręcz zamiast wypełnienia */
+  /* border: 4px solid #4CAF50;  Obręcz zamiast wypełnienia */
   background-color: transparent; /* Puste wnętrze */
-  border-radius: 50%;
+  /*border-radius: 50%; */
   position: relative;
   z-index: 2;
 }
@@ -268,6 +306,35 @@ th:not(:last-child)::after {
 }
 .container > div.commit-details{
   grid-area: commit-details;
+}
+
+.branches {
+  background: var(--commit-bg);
+  border: 1px solid #4c63af;
+  border-radius: 12px;
+  padding: 10px;
+  margin: 5px 0;
+  transition: background 0.3s ease-in-out;
+}
+
+.branches-label-header {
+  border: 1px solid var(--commit-border);
+  background: white;
+  display: flex;
+  align-items: center; /* Wyrównanie pionowe */
+  gap: 8px; /* Odstęp między GIF-em a napisem */
+}
+
+.branches-label {
+  border: 1px solid var(--commit-border);
+  display: flex;
+  align-items: center; /* Wyrównanie pionowe */
+  gap: 8px; /* Odstęp między GIF-em a napisem */
+}
+
+.branches-label-icon {
+  width: 48px; /* Zmień na mniejszy/gif */
+  height: 48px;
 }
 
 .commit-details {
