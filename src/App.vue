@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from '@tauri-apps/plugin-dialog';
+import "/src/assets/styles.css";
 
 interface Commit {
   hash: string;
@@ -41,6 +42,20 @@ async function get_git_log() {
   }
 }
 
+async function git_init() {
+  try {
+    const r = await open({
+      directory: true, // Wybór folderu zamiast pliku
+      multiple: false, // Pozwala wybrać tylko jeden folder
+    });
+    if (r) {
+      await invoke("git_init", { repoPath: r });
+    }
+  } catch (e) {
+    console.error("Błąd:", e);
+  }
+}
+
 function format_date(timestamp: number) : string {
   return new Date(timestamp*1000).toLocaleString();
 }
@@ -49,13 +64,16 @@ function format_date(timestamp: number) : string {
 
 <template>
   <main class="container">
-    <div class="header">Welcome to Tauri + Vue
-        <div>{{ name }}</div>
-        <div>
-          <form class="row" @submit.prevent="get_git_log">
-            <button type="submit">Otwórz repozytorium</button>
-          </form>
+    <div class="header">
+      <img class="header-icon" src="/src/assets/electrodes.gif" alt="Animacja" />
+      <div v-if="commits.length > 0">
+        <div class="menu">
+          <div>{{ name }}</div>
+          <form @submit.prevent="get_git_log"><button class="menu-item">Open Ctrl+O</button></form>
+          <form @submit.prevent="git_init"><button class="menu-item">Init Ctrl+I</button></form>
+          <form @submit.prevent="get_git_log"><button class="menu-item">Clone Ctrl+N</button></form>
         </div>
+      </div>
     </div>
     <div class="branches">
       <div class="branches-label-header"><img class="branches-label-icon" src="/src/assets/tree.gif" alt="Animacja" /><div>Local Branches</div></div>
@@ -68,15 +86,21 @@ function format_date(timestamp: number) : string {
       </div>
     </div>
     <div class="content">
+      <div v-if="commits.length === 0" class="empty-message">
+        <div><img class="empty-icon" src="/src/assets/share.gif" alt="Animacja" /><div>Open Repo, Clone Remote or Init New</div></div>
+        <div class="menu">
+          <div>{{ name }}</div>
+          <form @submit.prevent="get_git_log"><button class="menu-item">Open Ctrl+O</button></form>
+          <form @submit.prevent="git_init"><button class="menu-item">Init Ctrl+I</button></form>
+          <form @submit.prevent="get_git_log"><button class="menu-item">Clone Ctrl+N</button></form>
+        </div>
+      </div>
       <div class="row" v-for="commit in commits">
         <div class="cell-dot" >
           <div
               @mouseover="selectedCommit = commit"
           >
             <img class="cell-dot" src="/src/assets/share.png" alt="Animacja" />
-<!--            <div class="hover-3">-->
-<!--              <div :class="'dot'"></div>-->
-<!--            </div>-->
           </div>
         </div>
         <div class="cell-hash-label">
@@ -108,44 +132,9 @@ function format_date(timestamp: number) : string {
   </main>
 </template>
 
-<style scoped>
-.logo.vite:hover {
-  filter: drop-shadow(0 0 2em #747bff);
-}
 
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #249b73);
-}
-</style>
+
 <style>
-
-/* Cały pasek przewijania */
-::-webkit-scrollbar {
-  width: 10px; /* Szerokość paska */
-}
-
-/* Kolor tła paska */
-::-webkit-scrollbar-track {
-  background: #5a2a27; /* Ciemnoczerwony, jak jesienne liście */
-  border-radius: 5px;
-}
-
-/* Suwak (uchwyt) */
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #c94c4c, #ffb74d); /* Gradient czerwono-pomarańczowy */
-  border-radius: 5px;
-}
-
-/* Hover efekt na suwak */
-::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #ff6347, #ffa726); /* Jaśniejszy efekt */
-}
-
-.row {
-  display: flex;
-  gap: 10px; /* Odstęp między elementami */
-  width: auto;
-}
 
 .cell-dot {
   flex: 1; /* Każda komórka zajmie równą przestrzeń */
@@ -289,10 +278,7 @@ th:not(:last-child)::after {
 .container > div {
   background-color: rgba(166, 63, 41, 0.08);
 }
-.container > div.header {
-  grid-area: header;
-  text-align: left;
-}
+
 .container > div.branches {
   grid-area: branches;
 }

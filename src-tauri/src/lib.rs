@@ -1,13 +1,14 @@
+mod git;
+use crate::git::GitGate;
+
 use git2::{Repository, Error, Oid, BranchType, Branch};
 use serde::Serialize;
 use std::collections::HashMap;
 use std::ptr::hash;
 
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
+use tokio::sync::Mutex;
+use std::sync::Arc;
+use tauri::State;
 
 #[derive(Serialize)]
 struct Commit {
@@ -111,13 +112,27 @@ fn get_git_log(repo_path: String) -> Result<Vec<Commit>, String> {
     Ok(commits)
 }
 
+#[tauri::command]
+async fn git_init(state: State<'_, Arc<Mutex<git::GitGate>>>, repo_path: String) -> Result<(), String> {
+    let mut git_gate = state.lock().await;
+    git_gate.path = repo_path;
+    if git_gate.init() {
+        Ok(())
+    } else {
+        Err(String::from("Failed to initialize git repo"))
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point, tauri::tauri_plugin_dialog, tauri::tauri_plugin_fs)]
 pub fn run() {
+    let git_gate = Arc::new(Mutex::new(git::GitGate::new()));
+
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
-        .invoke_handler(tauri::generate_handler![get_git_log, get_remote_branches, get_local_branches])
+        .manage(git_gate.clone())
+        .invoke_handler(tauri::generate_handler![get_git_log, get_remote_branches, get_local_branches, git_init])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

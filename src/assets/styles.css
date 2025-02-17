@@ -1,0 +1,92 @@
+:root {
+    --bg-color: #E6D6C5;            /* Ciepły beż (tło główne, drewno) */
+    --panel-color: #D1BFA5;         /* Jasny brąz (panele boczne, karty commitów) */
+    --highlight-color: #B89B7E;     /* Ciemniejszy brąz (podświetlenia, aktywne elementy) */
+    --text-color: #2E2E2E;          /* Grafitowy tekst (kontrast i czytelność) */
+    --accent-green: #4C8C4A;        /* Zieleń (gałęzie, statusy, akcenty) */
+    --commit-bg: #E0C9A6;           /* Jasny brązowy dla commitów */
+    --commit-border: #8C6B48;       /* Ciemniejszy kontur commitów */
+    --hover-color: #A3835F;         /* Subtelne podświetlenie na hover */
+}
+
+/* Cały pasek przewijania */
+::-webkit-scrollbar {
+    width: 10px; /* Szerokość paska */
+}
+
+/* Kolor tła paska */
+::-webkit-scrollbar-track {
+    background: #5a2a27; /* Ciemnoczerwony, jak jesienne liście */
+    border-radius: 5px;
+}
+
+/* Suwak (uchwyt) */
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #c94c4c, #ffb74d); /* Gradient czerwono-pomarańczowy */
+    border-radius: 5px;
+}
+
+/* Hover efekt na suwak */
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #ff6347, #ffa726); /* Jaśniejszy efekt */
+}
+
+.row {
+    display: flex;
+    gap: 10px; /* Odstęp między elementami */
+    width: auto;
+    border: 10px;
+    border-color: var(--commit-border);
+    border-width: 5px;
+}
+
+/*HEADER*/
+.container > div.header {
+    grid-area: header;
+    text-align: left;
+    display: flex;
+    /*display: inline-block;*/
+    gap: 5px;
+}
+
+.header-icon {
+    width: 48px; /* Zmień na mniejszy/gif */
+    height: 48px;
+}
+
+/* Stylowanie całego menu */
+.menu {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5px 0;
+}
+
+/* Stylowanie przycisków w menu */
+.menu-item {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin: 0 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* Stylizacja przycisków przy najechaniu */
+.menu-item:hover {
+    background-color: #45a049;
+}
+
+.empty-message {
+    text-align: center;
+    font-size: 1.2rem;
+    color: rgb(166, 85, 41);
+    padding: 20px;
+}
+
+.empty-icon {
+    width: 96px; /* Zmień na mniejszy/gif */
+    height: 96px;
+}
