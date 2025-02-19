@@ -112,6 +112,14 @@ fn get_git_log(repo_path: String) -> Result<Vec<Commit>, String> {
     Ok(commits)
 }
 
+fn extract_repo_name(url: &str) -> Option<String> {
+    let url = url.trim_end_matches(".git"); // Usuń ".git" na końcu, jeśli istnieje
+    let parts: Vec<&str> = url.rsplit('/').collect(); // Podziel URL od końca
+
+    parts.first().map(|s| s.to_string()) // Pobierz ostatni element, jeśli istnieje
+}
+
+
 #[tauri::command]
 async fn git_init(state: State<'_, Arc<Mutex<git::GitGate>>>, repo_path: String) -> Result<(), String> {
     let mut git_gate = state.lock().await;
@@ -120,6 +128,21 @@ async fn git_init(state: State<'_, Arc<Mutex<git::GitGate>>>, repo_path: String)
         Ok(())
     } else {
         Err(String::from("Failed to initialize git repo"))
+    }
+}
+
+#[tauri::command]
+async fn git_clone(state: State<'_, Arc<Mutex<git::GitGate>>>, repo_path: String, url: String) -> Result<(), String> {
+    let mut git_gate = state.lock().await;
+    dbg!(&repo_path);
+    dbg!(&url);
+    git_gate.path = String::from(format!("{}/{}",repo_path,extract_repo_name(&url).unwrap_or(String::new())));
+    dbg!(&git_gate.path);
+    git_gate.url = url;
+    if git_gate.clone() {
+        Ok(())
+    } else {
+        Err(String::from("Failed to clone git repo"))
     }
 }
 
@@ -132,7 +155,8 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .manage(git_gate.clone())
-        .invoke_handler(tauri::generate_handler![get_git_log, get_remote_branches, get_local_branches, git_init])
+        .invoke_handler(tauri::generate_handler![get_git_log, get_remote_branches, get_local_branches,
+            git_init, git_clone])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

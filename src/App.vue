@@ -3,6 +3,7 @@ import { ref } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from '@tauri-apps/plugin-dialog';
 import "/src/assets/styles.css";
+import CloneRepo from "./CloneRepo.vue";
 
 interface Commit {
   hash: string;
@@ -18,6 +19,7 @@ const name = ref("");
 const commits = ref<Commit[]>([]);
 const local_branches = ref([]);
 const remote_branches = ref([]);
+const show_clone_repo_popup = ref(false);
 
 async function get_git_log() {
   try {
@@ -56,6 +58,8 @@ async function git_init() {
   }
 }
 
+
+
 function format_date(timestamp: number) : string {
   return new Date(timestamp*1000).toLocaleString();
 }
@@ -71,7 +75,7 @@ function format_date(timestamp: number) : string {
           <div>{{ name }}</div>
           <form @submit.prevent="get_git_log"><button class="menu-item">Open Ctrl+O</button></form>
           <form @submit.prevent="git_init"><button class="menu-item">Init Ctrl+I</button></form>
-          <form @submit.prevent="get_git_log"><button class="menu-item">Clone Ctrl+N</button></form>
+          <form><button class="menu-item">Clone Ctrl+N</button></form>
         </div>
       </div>
     </div>
@@ -88,12 +92,13 @@ function format_date(timestamp: number) : string {
     <div class="content">
       <div v-if="commits.length === 0" class="empty-message">
         <div><img class="empty-icon" src="/src/assets/share.gif" alt="Animacja" /><div>Open Repo, Clone Remote or Init New</div></div>
-        <div class="menu">
+        <div v-if="show_clone_repo_popup===false" class="menu">
           <div>{{ name }}</div>
           <form @submit.prevent="get_git_log"><button class="menu-item">Open Ctrl+O</button></form>
           <form @submit.prevent="git_init"><button class="menu-item">Init Ctrl+I</button></form>
-          <form @submit.prevent="get_git_log"><button class="menu-item">Clone Ctrl+N</button></form>
+          <button @click="show_clone_repo_popup = true; console.log(show_clone_repo_popup)" class="menu-item">Clone Ctrl+N</button>
         </div>
+        <CloneRepo v-if="show_clone_repo_popup" @close="show_clone_repo_popup = false" />
       </div>
       <div class="row" v-for="commit in commits">
         <div class="cell-dot" >
