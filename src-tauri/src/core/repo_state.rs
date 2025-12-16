@@ -1,5 +1,5 @@
-use CommitInfo;
-use BranchInfo;
+use crate::core::commit::CommitInfo;
+use crate::core::branch::BranchInfo;
 
 pub struct RepositoryState{
     pub commits: Vec<CommitInfo>,

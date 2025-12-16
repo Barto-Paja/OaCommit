@@ -6,19 +6,19 @@ use serde::Serialize;
 use std::collections::HashMap;
 use std::ptr::hash;
 
+mod core;
+use crate::core::repo_state::RepositoryState as CoreRepoState;
+use crate::core::commit::CommitInfo as CoreCommitInfo;
+use crate::core::branch::BranchInfo as CoreBranchInfo;
+
+mod view_models;
+use crate::view_models::branch::Branch as BranchView;
+use crate::view_models::commit::Commit as CommitView;
+
 use tokio::sync::Mutex;
 use std::sync::Arc;
 use tauri::State;
 
-#[derive(Serialize)]
-struct Commit {
-    pub hash: String,
-    pub message: String,
-    pub author: String,
-    pub date: i64,
-    pub branches: Vec<String>,
-    pub parents: Vec<String>
-}
 
 #[tauri::command]
 fn get_remote_branches(repo_path: String) -> Vec<(String,String)> {
