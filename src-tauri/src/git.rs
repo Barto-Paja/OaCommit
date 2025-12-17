@@ -119,34 +119,38 @@ impl GitGate {
 
         let mut branches = Vec::new();
 
-        if let Ok(local_branches) = repository.branches(Some(BranchType::Local)) {
-            for branch in local_branches.flatten() {
-                if let Ok(Some(name)) = branch.0.name() {
-                    branches.push(CoreBranchInfo {
-                        name: name.to_string(),
-                        is_remote: false,
-                    });
+        match repository.branches(Some(BranchType::Local)) {
+            Ok(local_branches) => {
+                for branch in local_branches.flatten() {
+                    if let Ok(Some(name)) = branch.0.name() {
+                        branches.push(CoreBranchInfo {
+                            name: name.to_string(),
+                            is_remote: false,
+                        });
+                    }
                 }
             }
-        }
-        else{
-            // ToDo: Message Error tu ma być
-            return false;
+            Err(e) => {
+                self.error_message = Some(format!("{}", e));
+                return false;
+            }
         }
 
-        if let Ok(remote_branches) = repository.branches(Some(BranchType::Remote)) {
-            for branch in remote_branches.flatten() {
-                if let Ok(Some(name)) = branch.0.name() {
-                    branches.push(CoreBranchInfo {
-                        name: name.to_string(),
-                        is_remote: true,
-                    });
+        match repository.branches(Some(BranchType::Remote)) {
+            Ok(remote_branches) => {
+                for branch in remote_branches.flatten() {
+                    if let Ok(Some(name)) = branch.0.name() {
+                        branches.push(CoreBranchInfo {
+                            name: name.to_string(),
+                            is_remote: true,
+                        });
+                    }
                 }
             }
-        }
-        else{
-            // ToDo: Message Error tu ma być
-            return false;
+            Err(e) => {
+                self.error_message = Some(format!("{}", e));
+                return false;
+            }
         }
 
         self.state.branches = branches;
