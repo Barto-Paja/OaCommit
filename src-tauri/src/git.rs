@@ -35,17 +35,18 @@ impl GitGate {
     }
 
     pub fn refresh(&mut self) -> bool {
-        _ = self.git_log();
-        self.get_branches()
+
+        if !self.get_current_branch(){ return false; }
+        if !self.git_log(){ return false; }
+        if !self.get_branches(){ return false; }
+
+        true
     }
     fn git_log(&mut self) -> bool {
 
-        let repository = match Repository::open(&self.path) {
-            Ok(r) => r,
-            Err(e) => {
-                self.error_message = Some(format!("{}", e));
-                return false
-            },
+        let repository = match self.open_repository() {
+            Some(r) => r,
+            None => return false,
         };
 
         let mut revwalk = match repository.revwalk() {
@@ -109,12 +110,9 @@ impl GitGate {
     }
 
     fn get_branches(&mut self) -> bool {
-        let repository = match Repository::open(&self.path) {
-            Ok(r) => r,
-            Err(e) => {
-                self.error_message = Some(format!("{}", e));
-                return false
-            },
+        let repository = match self.open_repository() {
+            Some(r) => r,
+            None => return false,
         };
 
         let head_branch_name = match repository.head() {
@@ -162,6 +160,32 @@ impl GitGate {
         self.state.branches = branches;
 
         true
+    }
+
+    fn get_current_branch(&mut self) -> bool {
+        let repository = match self.open_repository() {
+            Some(r) => r,
+            None => return false,
+        };
+
+        self.state.current_branch = match repository.head() {
+            Ok(head) if head.is_branch() => {
+                head.shorthand().map(|s| s.to_string())
+            },
+            _ => None,
+        };
+
+        true
+    }
+
+    fn open_repository(&mut self) -> Option<Repository> {
+        match Repository::open(&self.path) {
+            Ok(r) => Some(r),
+            Err(e) => {
+                self.error_message = Some(e.to_string());
+                None
+            }
+        }
     }
 
     pub fn init(&mut self) -> bool {
