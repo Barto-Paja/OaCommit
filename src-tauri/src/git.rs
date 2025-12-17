@@ -117,16 +117,25 @@ impl GitGate {
             },
         };
 
+        let head_branch_name = match repository.head() {
+            Ok(head) if head.is_branch() => {
+                head.shorthand().map(|s| s.to_string())
+            }
+            _ => None,
+        };
+
         let mut branches = Vec::new();
 
         match repository.branches(Some(BranchType::Local)) {
             Ok(local_branches) => {
                 for branch in local_branches.flatten() {
                     if let Ok(Some(name)) = branch.0.name() {
-                        branches.push(CoreBranchInfo {
-                            name: name.to_string(),
-                            is_remote: false,
-                        });
+                        let is_head = head_branch_name
+                            .as_deref()
+                            .map(|h| h == name)
+                            .unwrap_or(false);
+
+                        branches.push(CoreBranchInfo::new_local_head(name.to_string(), is_head));
                     }
                 }
             }
@@ -140,10 +149,7 @@ impl GitGate {
             Ok(remote_branches) => {
                 for branch in remote_branches.flatten() {
                     if let Ok(Some(name)) = branch.0.name() {
-                        branches.push(CoreBranchInfo {
-                            name: name.to_string(),
-                            is_remote: true,
-                        });
+                        branches.push(CoreBranchInfo::new_remote(name.to_string()))
                     }
                 }
             }

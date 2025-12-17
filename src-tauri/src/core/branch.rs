@@ -1,13 +1,15 @@
 pub struct BranchInfo{
     pub name: String,
     pub is_remote: bool,
+    pub is_head: bool,
 }
 
 impl BranchInfo {
-    pub fn new (name: String, is_remote: bool) -> Self{
+    pub fn new (name: String, is_remote: bool, is_head: bool) -> Self{
         BranchInfo{
             name,
             is_remote,
+            is_head,
         }
     }
 
@@ -15,6 +17,15 @@ impl BranchInfo {
         BranchInfo{
             name,
             is_remote: false,
+            is_head: false,
+        }
+    }
+
+    pub fn new_local_head(name: String, is_head: bool) -> Self{
+        BranchInfo{
+            name,
+            is_remote: false,
+            is_head,
         }
     }
 
@@ -22,6 +33,7 @@ impl BranchInfo {
         BranchInfo{
             name,
             is_remote: true,
+            is_head: false,
         }
     }
 }
